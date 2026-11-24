@@ -85,12 +85,13 @@ async def lifespan(app: FastAPI):
     except Exception as redis_init_err:
         logger.warning("Redis Pub/Sub setup error: %s", redis_init_err)
 
-    # Launch Transactional Outbox Publisher Daemon
-    try:
-        from app.services.outbox import outbox_publisher
-        outbox_publisher.start()
-    except Exception as outbox_init_err:
-        logger.error("Failed to start outbox publisher worker: %s", outbox_init_err)
+    # Launch Transactional Outbox Publisher Daemon (MySQL only)
+    if DB_MODE == "mysql":
+        try:
+            from app.services.outbox import outbox_publisher
+            outbox_publisher.start()
+        except Exception as outbox_init_err:
+            logger.error("Failed to start outbox publisher worker: %s", outbox_init_err)
 
     yield
     try:
