@@ -784,11 +784,11 @@ def front_desk_queue(
             complaint = r["entry_reason"]
 
         chk_time = r.get("checked_in_at") or r.get("entered_at")
-        chk_iso = chk_time.isoformat() if chk_time else None
-        entered_iso = r["entered_at"].isoformat() if r.get("entered_at") else None
-        called_iso = r["called_at"].isoformat() if r.get("called_at") else None
-        waiting_since = r["entered_at"].strftime("%I:%M %p") if r.get("entered_at") else None
-        called_at = r["called_at"].strftime("%I:%M %p") if r.get("called_at") else None
+        chk_iso = chk_time.isoformat() if hasattr(chk_time, "isoformat") else (str(chk_time) if chk_time else None)
+        entered_iso = r["entered_at"].isoformat() if hasattr(r.get("entered_at"), "isoformat") else (str(r["entered_at"]) if r.get("entered_at") else None)
+        called_iso = r["called_at"].isoformat() if hasattr(r.get("called_at"), "isoformat") else (str(r["called_at"]) if r.get("called_at") else None)
+        waiting_since = r["entered_at"].strftime("%I:%M %p") if hasattr(r.get("entered_at"), "strftime") else (str(r["entered_at"]) if r.get("entered_at") else None)
+        called_at = r["called_at"].strftime("%I:%M %p") if hasattr(r.get("called_at"), "strftime") else (str(r["called_at"]) if r.get("called_at") else None)
 
         result.append({
             # Identifiers

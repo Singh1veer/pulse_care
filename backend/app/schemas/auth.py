@@ -1,10 +1,18 @@
 from typing import Any, Dict, Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, model_validator
 
 
 class LoginRequest(BaseModel):
-    email: str
+    email: str | None = None
+    identifier: str | None = None
     password: str
+
+    @model_validator(mode="before")
+    def resolve_email_or_identifier(cls, values: Any) -> Any:
+        if isinstance(values, dict):
+            if not values.get("email") and values.get("identifier"):
+                values["email"] = values["identifier"]
+        return values
 
 
 class LoginResponse(BaseModel):

@@ -34,6 +34,11 @@ OTHER_CONDITION_NAME = "Other / Unspecified"
 def _calculate_age(date_of_birth) -> int:
     if date_of_birth is None:
         return None
+    if isinstance(date_of_birth, str):
+        try:
+            date_of_birth = date.fromisoformat(date_of_birth)
+        except Exception:
+            return None
     today = date.today()
     return today.year - date_of_birth.year - (
         (today.month, today.day) < (date_of_birth.month, date_of_birth.day)
@@ -237,11 +242,11 @@ def get_doctor_queue(
             complaint = r["entry_reason"]
 
         chk_time = r.get("checked_in_at") or r.get("entered_at")
-        chk_iso = chk_time.isoformat() if chk_time else None
-        entered_iso = r["entered_at"].isoformat() if r.get("entered_at") else None
-        called_iso = r["called_at"].isoformat() if r.get("called_at") else None
-        waiting_since = r["entered_at"].strftime("%I:%M %p") if r.get("entered_at") else None
-        called_at = r["called_at"].strftime("%I:%M %p") if r.get("called_at") else None
+        chk_iso = chk_time.isoformat() if hasattr(chk_time, "isoformat") else (str(chk_time) if chk_time else None)
+        entered_iso = r["entered_at"].isoformat() if hasattr(r.get("entered_at"), "isoformat") else (str(r["entered_at"]) if r.get("entered_at") else None)
+        called_iso = r["called_at"].isoformat() if hasattr(r.get("called_at"), "isoformat") else (str(r["called_at"]) if r.get("called_at") else None)
+        waiting_since = r["entered_at"].strftime("%I:%M %p") if hasattr(r.get("entered_at"), "strftime") else (str(r["entered_at"]) if r.get("entered_at") else None)
+        called_at = r["called_at"].strftime("%I:%M %p") if hasattr(r.get("called_at"), "strftime") else (str(r["called_at"]) if r.get("called_at") else None)
 
         result.append({
             # Identifiers
@@ -340,7 +345,7 @@ def get_active_consultation(
                     "rollNumber": roll_disp,
                     "name": row["full_name"],
                     "queueNo": row["queue_sequence"],
-                    "calledAt": row["called_at"].strftime("%I:%M %p") if row.get("called_at") else None,
+                    "calledAt": row["called_at"].strftime("%I:%M %p") if hasattr(row.get("called_at"), "strftime") else (str(row["called_at"]) if row.get("called_at") else None),
                     "age": age,
                     "bloodGroup": row["blood_group"],
                 },
@@ -538,7 +543,7 @@ def get_patient_history(roll_number: str, current: CurrentUser = Depends(get_cur
 
                 history.append(
                     {
-                        "date": v["checked_in_at"].strftime("%d %b %Y") if v["checked_in_at"] else "",
+                        "date": v["checked_in_at"].strftime("%d %b %Y") if hasattr(v.get("checked_in_at"), "strftime") else (str(v["checked_in_at"]) if v.get("checked_in_at") else ""),
                         "diagnosis": v["diagnosis"],
                         "notes": v["clinical_notes"] or v["general_instructions"] or "",
                         "medicines": medicines,

@@ -76,6 +76,27 @@ def sync_schema():
     add_col_if_missing("CONSULTATION", "created_at", "DATETIME NULL")
     add_col_if_missing("CONSULTATION", "updated_at", "DATETIME NULL")
 
+    # Migrate DOCTOR_AVAILABILITY if availability_date is missing
+    cols_da = [c[1] for c in cur.execute("PRAGMA table_info(DOCTOR_AVAILABILITY)").fetchall()]
+    if "availability_date" not in cols_da:
+        cur.executescript("""
+        DROP TABLE IF EXISTS DOCTOR_AVAILABILITY;
+        CREATE TABLE DOCTOR_AVAILABILITY (
+            availability_id     INTEGER PRIMARY KEY AUTOINCREMENT,
+            doctor_id           BIGINT NOT NULL,
+            availability_date   DATE NOT NULL DEFAULT CURRENT_DATE,
+            status              TEXT NOT NULL DEFAULT 'AVAILABLE',
+            start_time          TIME NULL,
+            end_time            TIME NULL,
+            created_by_user_id  BIGINT NULL,
+            created_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (doctor_id, availability_date)
+        );
+        INSERT OR IGNORE INTO DOCTOR_AVAILABILITY (doctor_id, status)
+        SELECT doctor_id, 'AVAILABLE' FROM DOCTOR;
+        """)
+
     # 9. PRESCRIPTION
     add_col_if_missing("PRESCRIPTION", "finalized_at", "DATETIME NULL")
 
@@ -131,9 +152,14 @@ def sync_schema():
     CREATE TABLE IF NOT EXISTS DOCTOR_AVAILABILITY (
         availability_id     INTEGER PRIMARY KEY AUTOINCREMENT,
         doctor_id           BIGINT NOT NULL,
-        is_available        BOOLEAN NOT NULL DEFAULT 1,
+        availability_date   DATE NOT NULL DEFAULT CURRENT_DATE,
         status              TEXT NOT NULL DEFAULT 'AVAILABLE',
-        updated_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        start_time          TIME NULL,
+        end_time            TIME NULL,
+        created_by_user_id  BIGINT NULL,
+        created_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (doctor_id, availability_date)
     );
 
     CREATE TABLE IF NOT EXISTS VISIT_EVENT (
