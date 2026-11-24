@@ -150,10 +150,14 @@ export default function Doctors_Dashboard() {
     return patients.find((p) => p.id === selectedPatientId) || patients[0] || null
   }, [patients, selectedPatientId])
 
-  // Automatically open questionnaire when prescription tab is focused with a selected student
+  // Only open questionnaire when explicitly switching to prescription tab with an active consultation patient
+  const prevActiveTabRef = useRef(activeTab)
   useEffect(() => {
-    if (activeTab === 'prescription' && selectedPatient) {
-      setIsPrescriptionModalOpen(true)
+    if (prevActiveTabRef.current !== activeTab) {
+      prevActiveTabRef.current = activeTab
+      if (activeTab === 'prescription' && selectedPatient && selectedPatient.status === 'In Consultation') {
+        setIsPrescriptionModalOpen(true)
+      }
     }
   }, [activeTab, selectedPatient])
 
@@ -342,7 +346,6 @@ export default function Doctors_Dashboard() {
   useEffect(() => {
     resetPrescriptionDraft()
     setServerError(null)
-    setFinalizeSuccessData(null)
   }, [selectedPatient?.visitId, selectedPatient?.rollNo, selectedPatient?.id])
 
   // Filtered formulary
@@ -524,9 +527,10 @@ export default function Doctors_Dashboard() {
           setQueueError(null)
 
           setSelectedPatientId((currentId) => {
-            if (currentId && sorted.some((p) => p.id === currentId)) return currentId
             const inConsult = sorted.find((p) => p.status === 'In Consultation')
-            return inConsult ? inConsult.id : sorted[0]?.id || null
+            if (inConsult) return inConsult.id
+            if (currentId && sorted.some((p) => p.id === currentId)) return currentId
+            return sorted[0]?.id || null
           })
         }
       }
@@ -596,9 +600,10 @@ export default function Doctors_Dashboard() {
           setQueueError(null)
 
           setSelectedPatientId((currentId) => {
-            if (currentId && sorted.some((p) => p.id === currentId)) return currentId
             const inConsult = sorted.find((p) => p.status === 'In Consultation')
-            return inConsult ? inConsult.id : sorted[0]?.id || null
+            if (inConsult) return inConsult.id
+            if (currentId && sorted.some((p) => p.id === currentId)) return currentId
+            return sorted[0]?.id || null
           })
         }
       }
@@ -948,6 +953,12 @@ export default function Doctors_Dashboard() {
       }
       await loadBackendData(false)
       setActiveTab('queue')
+      const targetId = res?.queueEntryId || res?.visitId || res?.queue_entry_id || res?.visit_id
+      if (targetId) {
+        setSelectedPatientId(targetId)
+      }
+      setPresetPrescription(null)
+      setIsPrescriptionModalOpen(true)
     } catch (err) {
       const msg = err.detail || err.message || 'No waiting patients'
       if (err.status === 404 || msg.includes('404')) {
@@ -963,12 +974,24 @@ export default function Doctors_Dashboard() {
   }
 
   // Start Consultation
-  const handleStartConsultation = async (visitId) => {
+  const handleStartConsultation = async (visitId, patientId = null, autoOpenPrescription = true) => {
     if (!doctorId || !visitId) return
+    if (patientId) {
+      setSelectedPatientId(patientId)
+      setMobileQueuePane('patient')
+    }
     try {
       await startConsultation(doctorId, visitId)
       triggerToast('Consultation started')
       await loadBackendData(false)
+      if (patientId) {
+        setSelectedPatientId(patientId)
+      }
+      setActiveTab('queue')
+      if (autoOpenPrescription) {
+        setPresetPrescription(null)
+        setIsPrescriptionModalOpen(true)
+      }
     } catch (err) {
       triggerToast(err.detail || err.message || 'Could not start consultation')
     }
@@ -1317,6 +1340,7 @@ export default function Doctors_Dashboard() {
       setFinalizeSuccessData(completedRecord)
       setIsPrescriptionModalOpen(false)
       setShowReviewModal(false)
+      setActiveTab('queue')
 
       setSeenCount((prev) => prev + 1)
       setCompletedHistory((prev) => [
@@ -1793,7 +1817,7 @@ export default function Doctors_Dashboard() {
                                       triggerToast(`Consultation in progress with ${activeConsultationPatient?.name || 'another patient'}. Complete it first.`)
                                       return
                                     }
-                                    handleStartConsultation(patient.visitId || patient.id)
+                                    handleStartConsultation(patient.visitId || patient.id, patient.id, true)
                                   }}
                                   title={hasActiveConsultation ? `Finish active consultation with ${activeConsultationPatient?.name} first` : 'Start Consultation'}
                                   className={cn(
@@ -1993,7 +2017,7 @@ export default function Doctors_Dashboard() {
                             </div>
                             <button
                               type="button"
-                              onClick={() => handleStartConsultation(selectedPatient.visitId || selectedPatient.id)}
+                              onClick={() => handleStartConsultation(selectedPatient.visitId || selectedPatient.id, selectedPatient.id, true)}
                               className="px-3 py-1.5 rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs cursor-pointer shadow-2xs transition-colors shrink-0"
                             >
                               Attend {selectedPatient.name.split(' ')[0]}
@@ -2085,7 +2109,7 @@ export default function Doctors_Dashboard() {
                     ) : (
                       <button
                         type="button"
-                        onClick={() => handleStartConsultation(selectedPatient.visitId || selectedPatient.id)}
+                        onClick={() => handleStartConsultation(selectedPatient.visitId || selectedPatient.id, selectedPatient.id, true)}
                         className="px-4 py-2 rounded-xl bg-teal-700 text-white font-bold text-xs cursor-pointer shadow-xs"
                       >
                         Attend {selectedPatient.name.split(' ')[0]} Now
