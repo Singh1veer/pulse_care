@@ -463,12 +463,11 @@ def check_database_readiness() -> dict:
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT 1 AS probe, DATABASE() AS database_name, VERSION() AS version;")
-            row = cursor.fetchone()
-
             table_count = 0
             mode = (config.DB_MODE or "mysql").lower()
             if mode == "mysql":
+                cursor.execute("SELECT 1 AS probe, DATABASE() AS database_name, VERSION() AS version;")
+                row = cursor.fetchone()
                 cursor.execute(
                     "SELECT COUNT(*) AS n FROM information_schema.tables WHERE table_schema = DATABASE();"
                 )
@@ -476,6 +475,8 @@ def check_database_readiness() -> dict:
                 if t_row:
                     table_count = t_row.get("n", 0)
             else:
+                cursor.execute("SELECT 1 AS probe, 'campuscare_dev' AS database_name, sqlite_version() AS version;")
+                row = cursor.fetchone()
                 cursor.execute("SELECT COUNT(*) AS n FROM sqlite_master WHERE type='table';")
                 t_row = cursor.fetchone()
                 if t_row:
