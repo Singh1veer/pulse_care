@@ -301,7 +301,10 @@ VALID_VERIFICATION_OUTCOMES = ("VERIFIED", "REJECTED", "FLAGGED")
 
 def generate_community_code(cursor) -> str:
     """Generates a concurrency-safe, monotonic community code backed by COMMUNITY_SEQUENCE."""
-    cursor.execute("INSERT INTO COMMUNITY_SEQUENCE () VALUES ()")
+    try:
+        cursor.execute("INSERT INTO COMMUNITY_SEQUENCE () VALUES ()")
+    except Exception:
+        cursor.execute("INSERT INTO COMMUNITY_SEQUENCE DEFAULT VALUES")
     seq_id = cursor.lastrowid
     return f"CC-COM-{seq_id}"
 

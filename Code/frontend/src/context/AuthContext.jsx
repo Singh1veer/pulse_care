@@ -194,8 +194,8 @@ export function AuthProvider({ children }) {
     setError('')
     try {
       let res
-      if (typeof credentialOrEmail === 'string' && credentialOrEmail.includes('@')) {
-        // Direct institutional email login against /api/auth/faculty/login
+      if (typeof credentialOrEmail === 'string' && (credentialOrEmail.includes('@') || passwordOrSimulated !== null || /^[A-Za-z0-9_-]+$/.test(credentialOrEmail.trim()))) {
+        // Direct institutional email or employee ID login against /api/auth/faculty/login
         res = await loginFacultyDirect(credentialOrEmail, typeof passwordOrSimulated === 'string' ? passwordOrSimulated : '')
       } else {
         // Google Workspace OAuth Token verification
@@ -207,7 +207,7 @@ export function AuthProvider({ children }) {
         email: res.email,
         department: res.department,
         designation: res.designation,
-        employeeCode: res.employee_code,
+        employeeCode: res.employee_code || res.employee_id || res.employeeId,
         patientId: res.patient_id,
         accountType: res.account_type || 'FACULTY',
       }

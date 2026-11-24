@@ -17,6 +17,8 @@ def _clean_sql_for_sqlite(sql: str) -> str:
     # Replace CURDATE() and NOW()
     s = re.sub(r'\bCURDATE\(\)', "DATE('now')", s, flags=re.IGNORECASE)
     s = re.sub(r'\bNOW\(\)', "DATETIME('now')", s, flags=re.IGNORECASE)
+    # Convert MySQL empty INSERT () VALUES () to SQLite DEFAULT VALUES
+    s = re.sub(r'\bINSERT\s+INTO\s+([`"\w]+)\s*\(\s*\)\s*VALUES\s*\(\s*\)', r'INSERT INTO \1 DEFAULT VALUES', s, flags=re.IGNORECASE)
 
     # Convert MySQL ON DUPLICATE KEY UPDATE to SQLite ON CONFLICT (...) DO UPDATE SET
     if re.search(r'\bON\s+DUPLICATE\s+KEY\s+UPDATE\b', s, flags=re.IGNORECASE):

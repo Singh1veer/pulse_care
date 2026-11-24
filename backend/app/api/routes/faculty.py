@@ -37,11 +37,15 @@ def get_faculty_profile(current: CurrentFaculty = Depends(get_current_faculty)):
         with connection.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT f.faculty_id, f.user_id, f.patient_id, f.employee_id, f.department, f.designation,
+                SELECT f.faculty_id, f.user_id, f.patient_id, 
+                       COALESCE(f.employee_id, f.employee_code, fd.employee_code, fd.employee_id, '') as employee_id,
+                       COALESCE(f.employee_code, f.employee_id, fd.employee_code, fd.employee_id, '') as employee_code,
+                       f.department, f.designation,
                        f.status, p.full_name, p.age, p.gender, p.blood_group, ua.email
                 FROM FACULTY f
                 JOIN USER_ACCOUNT ua ON ua.user_id = f.user_id
                 JOIN PATIENT p ON p.patient_id = f.patient_id
+                LEFT JOIN FACULTY_DIRECTORY fd ON fd.institutional_email = ua.email
                 WHERE f.faculty_id = %s
                 """,
                 (current.faculty_id,),

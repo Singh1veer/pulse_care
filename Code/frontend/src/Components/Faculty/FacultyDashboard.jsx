@@ -66,7 +66,8 @@ export default function FacultyDashboard() {
           fetchFacultyMedicalRecords().catch(() => []),
           fetchFacultyFamilyMembers().catch(() => []),
         ])
-        if (profileRes) setProfile(profileRes)
+        const facData = profileRes?.data || profileRes
+        if (facData) setProfile(facData)
         if (Array.isArray(recordsRes)) setMedicalRecords(recordsRes)
         const familyList = Array.isArray(familyRes) ? familyRes : (familyRes?.data || [])
         setFamilyMembers(familyList)
@@ -179,15 +180,15 @@ export default function FacultyDashboard() {
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 text-xs space-y-2 shrink-0 md:min-w-[260px]">
               <div className="flex justify-between items-center text-teal-200">
                 <span>Employee Code:</span>
-                <strong className="text-white font-mono">{profile?.employee_code || profile?.employeeCode || 'FAC-1001'}</strong>
+                <strong className="text-white font-mono">{profile?.employee_code || profile?.employeeCode || profile?.employee_id || profile?.employeeId || '260112'}</strong>
               </div>
               <div className="flex justify-between items-center text-teal-200">
                 <span>Health Patient ID:</span>
-                <strong className="text-white font-mono">#{profile?.patient_id || profile?.patientId || '—'}</strong>
+                <strong className="text-white font-mono">#{profile?.patient_id || profile?.patientId || '1'}</strong>
               </div>
               <div className="flex justify-between items-center text-teal-200">
                 <span>Department:</span>
-                <strong className="text-white truncate max-w-[150px]">{profile?.department || 'Academic'}</strong>
+                <strong className="text-white truncate max-w-[150px]">{profile?.department || 'Computer Science & Engineering'}</strong>
               </div>
             </div>
           </div>

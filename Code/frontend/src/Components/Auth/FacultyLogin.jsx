@@ -119,14 +119,14 @@ export default function FacultyLogin() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!email) {
-      setLocalError('Please enter your institutional @thapar.edu email.')
+    if (!email || !email.trim()) {
+      setLocalError('Please enter your institutional @thapar.edu email or Employee ID.')
       return
     }
     setLocalError('')
     if (setError) setError('')
     try {
-      const success = await loginFaculty(email, password)
+      const success = await loginFaculty(email.trim(), password)
       if (success) {
         navigate('/faculty_dashboard')
       }
@@ -262,19 +262,22 @@ export default function FacultyLogin() {
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div>
                 <label className="text-xs font-medium text-slate-700 mb-1.5 block">
-                  Institutional Email
+                  Institutional Email or Employee ID
                 </label>
                 <GlassInputWrapper>
                   <input
                     name="email"
-                    type="email"
+                    type="text"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="faculty@thapar.edu"
+                    placeholder="faculty@thapar.edu or 260112"
                     className="w-full bg-transparent text-sm p-3.5 rounded-2xl focus:outline-none text-slate-900 placeholder:text-slate-400"
                   />
                 </GlassInputWrapper>
+                <span className="text-[11px] text-slate-500 mt-1 block">
+                  Enter your university email or 6-digit Employee ID (e.g. 260112)
+                </span>
               </div>
 
               <div>

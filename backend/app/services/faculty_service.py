@@ -44,7 +44,10 @@ def resolve_or_create_faculty_account(
             # 1. Authoritative Eligibility Check against FACULTY_DIRECTORY
             cursor.execute(
                 """
-                SELECT faculty_dir_id, full_name, department, designation, is_active
+                SELECT faculty_dir_id, full_name, department, designation, 
+                       COALESCE(employee_id, employee_code, '') as employee_id,
+                       COALESCE(employee_code, employee_id, '') as employee_code,
+                       is_active
                 FROM FACULTY_DIRECTORY
                 WHERE institutional_email = %s
                 """,
@@ -68,12 +71,13 @@ def resolve_or_create_faculty_account(
             effective_name = dir_entry["full_name"] or name
             department = dir_entry["department"]
             designation = dir_entry["designation"] or "Faculty Member"
+            emp_code = dir_entry.get("employee_code") or dir_entry.get("employee_id") or ""
 
             # 2. Check if USER_ACCOUNT already exists for this email
             cursor.execute(
                 """
                 SELECT ua.user_id, ua.status, ua.account_type,
-                       f.faculty_id, f.patient_id, f.department, f.designation, f.status as faculty_status
+                       f.faculty_id, f.patient_id, f.employee_id, f.employee_code, f.department, f.designation, f.status as faculty_status
                 FROM USER_ACCOUNT ua
                 LEFT JOIN FACULTY f ON f.user_id = ua.user_id
                 WHERE ua.email = %s
@@ -105,13 +109,20 @@ def resolve_or_create_faculty_account(
                     if not faculty_id:
                         cursor.execute(
                             """
-                            INSERT INTO FACULTY (user_id, patient_id, department, designation, status)
-                            VALUES (%s, %s, %s, %s, 'ACTIVE')
+                            INSERT INTO FACULTY (user_id, patient_id, employee_id, employee_code, department, designation, status)
+                            VALUES (%s, %s, %s, %s, %s, %s, 'ACTIVE')
                             """,
-                            (user_id, patient_id, department, designation),
+                            (user_id, patient_id, emp_code, emp_code, department, designation),
                         )
                         faculty_id = cursor.lastrowid
                     connection.commit()
+                else:
+                    if emp_code and (not row.get("employee_id") or not row.get("employee_code")):
+                        cursor.execute(
+                            "UPDATE FACULTY SET employee_id = COALESCE(employee_id, %s), employee_code = COALESCE(employee_code, %s) WHERE faculty_id = %s",
+                            (emp_code, emp_code, faculty_id),
+                        )
+                        connection.commit()
 
                 # Update google_subject if provided
                 if google_sub:
@@ -129,6 +140,8 @@ def resolve_or_create_faculty_account(
                     "name": effective_name,
                     "department": department,
                     "designation": designation,
+                    "employee_code": emp_code,
+                    "employee_id": emp_code,
                 }
 
             # 3. First-Time Atomic Provisioning
@@ -155,10 +168,10 @@ def resolve_or_create_faculty_account(
             # C) Create FACULTY Profile
             cursor.execute(
                 """
-                INSERT INTO FACULTY (user_id, patient_id, department, designation, status)
-                VALUES (%s, %s, %s, %s, 'ACTIVE')
+                INSERT INTO FACULTY (user_id, patient_id, employee_id, employee_code, department, designation, status)
+                VALUES (%s, %s, %s, %s, %s, %s, 'ACTIVE')
                 """,
-                (user_id, patient_id, department, designation),
+                (user_id, patient_id, emp_code, emp_code, department, designation),
             )
             faculty_id = cursor.lastrowid
 
@@ -340,18 +353,21 @@ def lookup_faculty_by_code_or_email(identifier: str) -> Optional[Dict[str, Any]]
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            # 1. Search existing FACULTY profile by employee_id or email
+            # 1. Search existing FACULTY profile by employee_id, employee_code, or email
             cursor.execute(
                 """
-                SELECT f.faculty_id, f.user_id, f.patient_id, f.employee_id, f.department, f.designation, f.status,
+                SELECT f.faculty_id, f.user_id, f.patient_id, 
+                       COALESCE(f.employee_id, f.employee_code, '') as employee_id,
+                       COALESCE(f.employee_code, f.employee_id, '') as employee_code,
+                       f.department, f.designation, f.status,
                        ua.email as institutional_email, p.full_name
                 FROM FACULTY f
                 JOIN USER_ACCOUNT ua ON ua.user_id = f.user_id
                 JOIN PATIENT p ON p.patient_id = f.patient_id
-                WHERE f.employee_id = %s OR ua.email = %s
+                WHERE f.employee_id = %s OR f.employee_code = %s OR ua.email = %s
                 LIMIT 1
                 """,
-                (clean_id, clean_id.lower()),
+                (clean_id, clean_id, clean_id.lower()),
             )
             fac_row = cursor.fetchone()
 
@@ -359,12 +375,15 @@ def lookup_faculty_by_code_or_email(identifier: str) -> Optional[Dict[str, Any]]
             if not fac_row:
                 cursor.execute(
                     """
-                    SELECT faculty_dir_id, institutional_email, full_name, department, designation, employee_id, is_active
+                    SELECT faculty_dir_id, institutional_email, full_name, department, designation, 
+                           COALESCE(employee_id, employee_code, '') as employee_id,
+                           COALESCE(employee_code, employee_id, '') as employee_code,
+                           is_active
                     FROM FACULTY_DIRECTORY
-                    WHERE employee_id = %s OR institutional_email = %s
+                    WHERE employee_id = %s OR employee_code = %s OR institutional_email = %s
                     LIMIT 1
                     """,
-                    (clean_id, clean_id.lower()),
+                    (clean_id, clean_id, clean_id.lower()),
                 )
                 dir_row = cursor.fetchone()
                 if not dir_row:
@@ -378,17 +397,21 @@ def lookup_faculty_by_code_or_email(identifier: str) -> Optional[Dict[str, Any]]
                     email=dir_row["institutional_email"],
                     name=dir_row["full_name"],
                 )
-                # Ensure employee_id is synced to FACULTY
-                if dir_row.get("employee_id"):
+                # Ensure employee_id and employee_code are synced to FACULTY
+                dir_emp = dir_row.get("employee_id") or dir_row.get("employee_code")
+                if dir_emp:
                     cursor.execute(
-                        "UPDATE FACULTY SET employee_id = %s WHERE faculty_id = %s",
-                        (dir_row["employee_id"], created["faculty_id"]),
+                        "UPDATE FACULTY SET employee_id = %s, employee_code = %s WHERE faculty_id = %s",
+                        (dir_emp, dir_emp, created["faculty_id"]),
                     )
                     connection.commit()
 
                 cursor.execute(
                     """
-                    SELECT f.faculty_id, f.user_id, f.patient_id, f.employee_id, f.department, f.designation, f.status,
+                    SELECT f.faculty_id, f.user_id, f.patient_id, 
+                           COALESCE(f.employee_id, f.employee_code, '') as employee_id,
+                           COALESCE(f.employee_code, f.employee_id, '') as employee_code,
+                           f.department, f.designation, f.status,
                            ua.email as institutional_email, p.full_name
                     FROM FACULTY f
                     JOIN USER_ACCOUNT ua ON ua.user_id = f.user_id
@@ -457,7 +480,8 @@ def lookup_faculty_by_code_or_email(identifier: str) -> Optional[Dict[str, Any]]
             return {
                 "facultyId": fac_row["faculty_id"],
                 "patientId": fac_row["patient_id"],
-                "employeeId": fac_row["employee_id"],
+                "employeeId": fac_row.get("employee_id") or fac_row.get("employee_code"),
+                "employeeCode": fac_row.get("employee_code") or fac_row.get("employee_id"),
                 "name": fac_row["full_name"],
                 "department": fac_row["department"],
                 "designation": fac_row["designation"],
@@ -496,7 +520,10 @@ def check_in_faculty_patient(
             # 1. Fetch Faculty Profile
             cursor.execute(
                 """
-                SELECT f.faculty_id, f.patient_id, f.employee_id, f.department, p.full_name as faculty_name
+                SELECT f.faculty_id, f.patient_id, 
+                       COALESCE(f.employee_id, f.employee_code, '') as employee_id,
+                       COALESCE(f.employee_code, f.employee_id, '') as employee_code,
+                       f.department, p.full_name as faculty_name
                 FROM FACULTY f
                 JOIN PATIENT p ON p.patient_id = f.patient_id
                 WHERE f.faculty_id = %s AND f.status = 'ACTIVE'
@@ -700,7 +727,10 @@ def check_in_faculty_patient(
                 "patient_type": target_type,
                 "relationship": relationship_label,
                 "faculty_name": fac["faculty_name"],
-                "employee_id": fac["employee_id"],
+                "employee_id": fac.get("employee_id") or fac.get("employee_code"),
+                "employee_code": fac.get("employee_code") or fac.get("employee_id"),
+                "employeeId": fac.get("employee_id") or fac.get("employee_code"),
+                "employeeCode": fac.get("employee_code") or fac.get("employee_id"),
                 "queue_entry_id": queue_entry_id,
                 "queueEntryId": queue_entry_id,
             }

@@ -1314,7 +1314,8 @@ export async function deleteStudentMedication(medicationId) {
 
 // ── FACULTY & DEPENDENT PORTAL ENDPOINTS ──
 export async function fetchFacultyProfile() {
-  return await request('/api/faculty/me')
+  const res = await request('/api/faculty/me')
+  return res?.data || res
 }
 
 export async function fetchFacultyMedicalRecords() {

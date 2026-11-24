@@ -573,12 +573,38 @@ def faculty_institutional_login(payload: FacultyInstitutionalLoginRequest):
 def faculty_direct_login(payload: LoginRequest):
     """
     Direct Faculty login for approved directory members:
-    - Validates email domain ends with @thapar.edu
+    - Accepts institutional @thapar.edu email OR approved Employee ID / Code (e.g. 260112)
     - Strictly checks FACULTY_DIRECTORY (rejects unapproved with 403 Forbidden)
     - If user has password, verifies password hash; if new/first-time directory faculty, provisions account
     - Issues valid Faculty JWT
     """
-    clean_email = payload.email.strip().lower()
+    raw_ident = (payload.email or payload.identifier or "").strip()
+    clean_email = raw_ident.lower()
+
+    # If identifier is an employee code/id (no @ symbol), resolve from FACULTY_DIRECTORY
+    if "@" not in clean_email:
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT institutional_email FROM FACULTY_DIRECTORY
+                    WHERE employee_id = %s OR employee_code = %s
+                    LIMIT 1
+                    """,
+                    (raw_ident, raw_ident),
+                )
+                dir_match = cur.fetchone()
+                if dir_match and dir_match.get("institutional_email"):
+                    clean_email = dir_match["institutional_email"].strip().lower()
+                else:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"No faculty member found with employee code or ID '{raw_ident}'.",
+                    )
+        finally:
+            conn.close()
+
     if not clean_email.endswith("@thapar.edu"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -632,6 +658,7 @@ def faculty_direct_login(payload: LoginRequest):
     }
     token = create_access_token(token_claims)
 
+    emp_val = fac_account.get("employee_code") or fac_account.get("employee_id") or ""
     return FacultyLoginResponse(
         access_token=token,
         token_type="bearer",
@@ -644,6 +671,8 @@ def faculty_direct_login(payload: LoginRequest):
         email=fac_account["email"],
         department=fac_account["department"],
         designation=fac_account["designation"],
+        employee_code=emp_val,
+        employee_id=emp_val,
     )
 
 

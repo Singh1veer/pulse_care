@@ -87,6 +87,8 @@ class FacultyLoginResponse(BaseModel):
     email: EmailStr
     department: str
     designation: Optional[str] = None
+    employee_code: Optional[str] = None
+    employee_id: Optional[str] = None
 
 
 class MeResponse(BaseModel):
