@@ -7,7 +7,7 @@
 [![React](https://img.shields.io/badge/Frontend-React%2018%20%2B%20Vite-61DAFB?logo=react&logoColor=black)](#technology-stack)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI%20(Python)-009688?logo=fastapi&logoColor=white)](#technology-stack)
 [![TailwindCSS](https://img.shields.io/badge/Styling-Tailwind%20CSS-38B2AC?logo=tailwind-css&logoColor=white)](#technology-stack)
-[![Docker](https://img.shields.io/badge/Deployment-Docker%20%2B%20AWS%20EC2-2496ED?logo=docker&logoColor=white)](#deployment)
+[![Cloud](https://img.shields.io/badge/Hosting-AWS%20Cloud-FF9900?logo=amazon-aws&logoColor=white)](#technology-stack)
 [![Web NFC](https://img.shields.io/badge/Hardware-Web%20NFC%20(ISO%2014443)--3A)-black?logo=nfc&logoColor=white)](#key-features)
 [![Google OAuth](https://img.shields.io/badge/Auth-Google%20Workspace%20(@thapar.edu)-4285F4?logo=google&logoColor=white)](#authentication--security)
 
@@ -121,7 +121,7 @@ flowchart TB
 | **Security** | JWT (HS256), Google Auth Library | Token authentication & Thapar Workspace OAuth |
 | **Hardware** | Web NFC API (W3C Standard) | Reading Mifare Classic 1K / ISO 14443-3A ID cards |
 | **Database** | SQLite (Dev) / MySQL Compatible | Relational storage with foreign key integrity |
-| **DevOps** | Docker, Docker Compose, Nginx | Containerised multi-stage build with SSL/TLS |
+| **Server & Proxy** | Nginx, Uvicorn (ASGI) | Reverse proxy with SSL/TLS & asynchronous app server |
 | **Cloud Hosting** | AWS EC2 (Ubuntu 24.04 LTS) | Production deployment with automated health checks |
 
 ---
@@ -136,7 +136,6 @@ pulse_care/
 │       │   ├── Components/    # Modular UI (Auth, Doctor, Reception, Students, Admin)
 │       │   ├── App.jsx        # Route definitions and portal navigation
 │       │   └── api.js         # Centralised API client with token interceptors
-│       ├── Dockerfile         # Multi-stage Node build + Nginx SSL server
 │       └── nginx.conf         # Reverse proxy routing /api requests to backend
 ├── backend/                   # FastAPI backend application
 │   ├── app/
@@ -144,10 +143,8 @@ pulse_care/
 │   │   ├── core/              # Config, database connection pool, JWT security
 │   │   ├── schemas/           # Pydantic request/response validation models
 │   │   └── services/          # Business logic (queue management, student lookup)
-│   ├── Dockerfile             # Python 3.11 runtime container
 │   ├── requirements.txt       # Production dependencies
 │   └── campuscare_dev.db      # SQLite database with seed data
-├── docker-compose.yml         # Multi-container orchestration (Frontend + Backend)
 └── README.md
 ```
 
@@ -155,28 +152,13 @@ pulse_care/
 
 ## ⚡ Quick Start & Local Setup
 
-### Option A: Running with Docker (Recommended)
-
-Make sure you have [Docker](https://www.docker.com/) installed, then run:
-
+### 1. Clone the Repository
 ```bash
-# Clone the repository
 git clone https://github.com/Singh1veer/pulse_care.git
 cd pulse_care
-
-# Start both frontend and backend containers
-docker-compose up -d --build
 ```
 
-- **Frontend:** `http://localhost` (or `https://localhost`)
-- **Backend API Docs:** `http://localhost:8000/docs`
-- **Health Check:** `http://localhost:8000/health`
-
----
-
-### Option B: Running Manually for Development
-
-#### 1. Backend Setup
+### 2. Backend Setup
 ```bash
 cd backend
 python -m venv .venv
@@ -187,20 +169,20 @@ python -m venv .venv
 # macOS/Linux:
 source .venv/bin/activate
 
-# Install dependencies
+# Install dependencies and start server
 pip install -r requirements.txt
-
-# Start backend server
 uvicorn main:app --reload --port 8000
 ```
+- **Backend API Docs:** `http://localhost:8000/docs`
+- **Health Check:** `http://localhost:8000/health`
 
-#### 2. Frontend Setup
+### 3. Frontend Setup
 ```bash
 cd Code/frontend
 npm install
 npm run dev
 ```
-The frontend will start at `http://localhost:5173`.
+- **Frontend Application:** `http://localhost:5173`
 
 ---
 
