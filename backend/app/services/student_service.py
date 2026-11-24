@@ -181,6 +181,12 @@ def resolve_or_create_student_account(
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
+            # 0. Check if an existing STUDENT record already has this exact email registered
+            cur.execute("SELECT roll_number, user_id FROM STUDENT WHERE LOWER(email) = %s LIMIT 1", (clean_email,))
+            stud_by_email = cur.fetchone()
+            if stud_by_email and stud_by_email.get("roll_number"):
+                derived_roll = stud_by_email["roll_number"]
+
             # 1. Search for existing USER_ACCOUNT by google_subject or email
             cur.execute(
                 """
