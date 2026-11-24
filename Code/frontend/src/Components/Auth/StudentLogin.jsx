@@ -158,7 +158,7 @@ export default function StudentLogin() {
   }
 
   const handleFillDemo = () => {
-    setStudentEmail('1024030107')
+    setStudentEmail('1024030109')
     setStudentPassword('student123')
     setLocalError('')
   }
@@ -267,7 +267,7 @@ export default function StudentLogin() {
                     required
                     value={studentEmail}
                     onChange={(e) => setStudentEmail(e.target.value)}
-                    placeholder="1024030107 or student@thapar.edu"
+                    placeholder="1024030109 or student@thapar.edu"
                     className="w-full bg-transparent text-sm p-3.5 rounded-2xl focus:outline-none text-slate-900 placeholder:text-slate-400"
                   />
                 </GlassInputWrapper>
@@ -319,7 +319,7 @@ export default function StudentLogin() {
                 onClick={handleFillDemo}
                 className="text-xs text-slate-400 hover:text-indigo-700 transition-colors cursor-pointer"
               >
-                Use demo credentials (Roll #1024030107)
+                Use demo credentials (Roll #1024030109 / student123)
               </button>
             </div>
           </div>
