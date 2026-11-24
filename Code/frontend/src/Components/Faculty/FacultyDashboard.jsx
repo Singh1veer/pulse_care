@@ -68,7 +68,8 @@ export default function FacultyDashboard() {
         ])
         if (profileRes) setProfile(profileRes)
         if (Array.isArray(recordsRes)) setMedicalRecords(recordsRes)
-        if (Array.isArray(familyRes)) setFamilyMembers(familyRes)
+        const familyList = Array.isArray(familyRes) ? familyRes : (familyRes?.data || [])
+        setFamilyMembers(familyList)
       } catch (err) {
         setError(err.message || 'Failed to load faculty portal data')
       } finally {
@@ -99,7 +100,8 @@ export default function FacultyDashboard() {
     setAddError(null)
     try {
       const created = await addFacultyFamilyMember(newDependent)
-      setFamilyMembers((prev) => [created, ...prev])
+      const member = created?.data || created
+      setFamilyMembers((prev) => [member, ...prev.filter((m) => m.family_member_id !== member.family_member_id)])
       setShowAddModal(false)
       setNewDependent({
         full_name: '',

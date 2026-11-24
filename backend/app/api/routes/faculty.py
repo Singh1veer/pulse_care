@@ -19,8 +19,10 @@ router = APIRouter(prefix="/faculty", tags=["faculty"])
 
 class AddFamilyMemberRequest(BaseModel):
     full_name: str = Field(..., min_length=2, max_length=150)
-    relationship_type: str = Field(..., description="SPOUSE, CHILD, PARENT, OTHER")
+    relationship_type: Optional[str] = Field(None, description="SPOUSE, CHILD, PARENT, OTHER")
+    relationship: Optional[str] = Field(None, description="Frontend alias for relationship_type")
     age: Optional[int] = Field(None, ge=0, le=120)
+    date_of_birth: Optional[str] = None
     gender: str = Field("OTHER", description="MALE, FEMALE, OTHER")
     blood_group: Optional[str] = None
 
@@ -113,18 +115,38 @@ def create_family_member(
     Registers a new family-member patient profile linked to this faculty account.
     """
     try:
+        rel_type = (payload.relationship_type or payload.relationship or "OTHER").strip().upper()
+        if rel_type not in ('SPOUSE', 'CHILD', 'PARENT', 'OTHER'):
+            rel_type = 'OTHER'
+
+        calculated_age = payload.age
+        if calculated_age is None and payload.date_of_birth:
+            try:
+                from datetime import datetime, date
+                for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%Y/%m/%d", "%d/%m/%Y"):
+                    try:
+                        dob = datetime.strptime(payload.date_of_birth, fmt).date()
+                        today = date.today()
+                        calculated_age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+                        break
+                    except ValueError:
+                        pass
+            except Exception:
+                pass
+
         result = add_faculty_family_member(
             faculty_id=current.faculty_id,
             full_name=payload.full_name,
-            relationship_type=payload.relationship_type.upper(),
-            age=payload.age,
-            gender=payload.gender.upper(),
+            relationship_type=rel_type,
+            age=calculated_age,
+            gender=(payload.gender or "OTHER").strip().upper(),
             blood_group=payload.blood_group,
         )
         return {
             "status": "success",
             "message": "Family member added successfully",
             "data": result,
+            **result,
         }
     except ValueError as val_err:
         raise HTTPException(status_code=400, detail=str(val_err))

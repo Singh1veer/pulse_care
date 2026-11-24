@@ -1322,14 +1322,25 @@ export async function fetchFacultyMedicalRecords() {
 }
 
 export async function fetchFacultyFamilyMembers() {
-  return await request('/api/faculty/family')
+  const res = await request('/api/faculty/family')
+  return Array.isArray(res) ? res : (res?.data || [])
 }
 
 export async function addFacultyFamilyMember(payload) {
-  return await request('/api/faculty/family', {
+  const rel = (payload.relationship_type || payload.relationship || 'OTHER').toUpperCase()
+  const res = await request('/api/faculty/family', {
     method: 'POST',
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      full_name: payload.full_name,
+      relationship_type: rel,
+      relationship: rel,
+      gender: (payload.gender || 'OTHER').toUpperCase(),
+      date_of_birth: payload.date_of_birth || null,
+      age: payload.age || null,
+      blood_group: payload.blood_group || null,
+    }),
   })
+  return res?.data || res
 }
 
 export async function fetchFamilyMemberRecords(dependentId) {
