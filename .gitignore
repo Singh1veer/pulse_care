@@ -12,6 +12,8 @@ scratch/
 *.pem
 *.key
 backend/scripts/deploy_aws.py
+backend/scripts/check_live.py
+backend/scripts/inspect_ec2.py
 
 
 
