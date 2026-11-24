@@ -2124,8 +2124,8 @@ def dispense_medication(
             cur.execute(
                 """
                 INSERT INTO DISPENSING_ITEM
-                    (dispensing_id, prescription_item_id, dispensed_medicine_name, dispensed_strength, dispensed_quantity, was_changed, change_reason)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    (dispensing_id, prescription_item_id, dispensed_medicine_name, dispensed_strength, dispensed_quantity, was_changed, change_reason, medicine_name)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     dispensing_id,
@@ -2135,6 +2135,7 @@ def dispense_medication(
                     item_rec["dispensed_quantity"],
                     item_rec["was_changed"],
                     (item_rec["change_reason"][:255] if item_rec["change_reason"] else (final_change_reason[:255] if item_rec["was_changed"] and final_change_reason else None)),
+                    item_rec["dispensed_medicine_name"][:150],
                 ),
             )
             item_pk = cur.lastrowid
