@@ -51,7 +51,7 @@ export default function StudentLogin() {
   const [googleLoading, setGoogleLoading] = useState(false)
   const [gisRendered, setGisRendered] = useState(false)
 
-  const DEFAULT_GOOGLE_CLIENT_ID = '537555774720-50raj44tbc0qdma0u10s776lhua7ov5m.apps.googleusercontent.com'
+  const DEFAULT_GOOGLE_CLIENT_ID = '620450413221-oj5sfk4hutlro8bnit6rog6t7asq59n0.apps.googleusercontent.com'
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || DEFAULT_GOOGLE_CLIENT_ID
   const googleBtnRef = useRef(null)
 
@@ -78,7 +78,6 @@ export default function StudentLogin() {
               setGoogleLoading(false)
             }
           },
-          hosted_domain: 'thapar.edu',
           auto_select: false,
         })
         if (googleBtnRef.current) {

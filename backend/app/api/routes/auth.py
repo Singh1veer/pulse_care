@@ -280,7 +280,7 @@ def verify_google_oauth_token(credential: str) -> dict:
             if clean_email.endswith("@thapar.edu"):
                 return {
                     "iss": "accounts.google.com",
-                    "aud": GOOGLE_CLIENT_ID or "537555774720-50raj44tbc0qdma0u10s776lhua7ov5m.apps.googleusercontent.com",
+                    "aud": GOOGLE_CLIENT_ID or "620450413221-oj5sfk4hutlro8bnit6rog6t7asq59n0.apps.googleusercontent.com",
                     "email": clean_email,
                     "name": data.get("name") or display_name_from_email(clean_email),
                     "sub": data.get("sub") or f"dev_google_{clean_email}",
