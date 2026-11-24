@@ -1,8 +1,23 @@
 import os
+import re
 import sqlite3
 from datetime import date, datetime, timedelta
 
 DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "campuscare_dev.db"))
+
+
+def _clean_sql_for_sqlite(sql: str) -> str:
+    s = sql.replace("%s", "?")
+    # Strip row lock clauses: FOR UPDATE, FOR UPDATE SKIP LOCKED, FOR UPDATE NOWAIT
+    s = re.sub(r'\s+FOR\s+UPDATE(\s+(SKIP\s+LOCKED|NOWAIT))?', '', s, flags=re.IGNORECASE)
+    # Strip LOCK IN SHARE MODE
+    s = re.sub(r'\s+LOCK\s+IN\s+SHARE\s+MODE', '', s, flags=re.IGNORECASE)
+    # Replace INSERT IGNORE INTO with INSERT OR IGNORE INTO
+    s = re.sub(r'\bINSERT\s+IGNORE\s+INTO\b', 'INSERT OR IGNORE INTO', s, flags=re.IGNORECASE)
+    # Replace CURDATE() and NOW()
+    s = re.sub(r'\bCURDATE\(\)', "DATE('now')", s, flags=re.IGNORECASE)
+    s = re.sub(r'\bNOW\(\)', "DATETIME('now')", s, flags=re.IGNORECASE)
+    return s.strip()
 
 
 class SQLiteDictCursor:
@@ -11,10 +26,7 @@ class SQLiteDictCursor:
         self.lastrowid = None
 
     def execute(self, sql, params=None):
-        sqlite_sql = sql.replace("%s", "?")
-        # Replace MySQL specific function calls with SQLite equivalents if present
-        sqlite_sql = sqlite_sql.replace("CURDATE()", "DATE('now')")
-        sqlite_sql = sqlite_sql.strip()
+        sqlite_sql = _clean_sql_for_sqlite(sql)
 
         try:
             if params is not None:

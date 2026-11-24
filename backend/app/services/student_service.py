@@ -17,6 +17,12 @@ VALID_SEX_OPTIONS = {"MALE", "FEMALE", "OTHER"}
 VALID_SEVERITY_OPTIONS = {"MILD", "MODERATE", "SEVERE", "UNKNOWN"}
 
 
+def _iso(val: Any) -> Optional[str]:
+    if val is None:
+        return None
+    return val.isoformat() if hasattr(val, "isoformat") else str(val)
+
+
 def derive_academic_info(roll_number: str) -> Dict[str, Any]:
     """Infers program, branch, department, and estimated semester from student roll number."""
     rn = roll_number.strip().upper()
@@ -514,8 +520,8 @@ def get_student_me_telemetry(user_id: int, roll_number: str) -> Dict[str, Any]:
                     "specialty": active_row.get("specialty") or "General Physician",
                     "queueSequence": active_row.get("queue_sequence") or 1,
                     "status": active_row["visit_status"],
-                    "checkedInAt": active_row["checked_in_at"].isoformat() if active_row.get("checked_in_at") else None,
-                    "calledAt": active_row["called_at"].isoformat() if active_row.get("called_at") else None,
+                    "checkedInAt": _iso(active_row.get("checked_in_at")),
+                    "calledAt": _iso(active_row.get("called_at")),
                     "complaint": complaint,
                 }
 
@@ -966,7 +972,7 @@ def get_student_medical_profile(user_id: int, roll_number: str) -> Dict[str, Any
                     "severity": sev,
                     "source": "SELF_REPORTED" if is_self else "CLINICAL",
                     "canEdit": is_self,
-                    "recordedAt": r["recorded_at"].isoformat() if r.get("recorded_at") else None,
+                    "recordedAt": _iso(r.get("recorded_at")),
                 })
 
             # 4. Active Chronic Conditions
@@ -992,7 +998,7 @@ def get_student_medical_profile(user_id: int, roll_number: str) -> Dict[str, Any
                     "otherDescription": r.get("other_description"),
                     "source": "SELF_REPORTED" if is_self else "CLINICAL",
                     "canEdit": is_self,
-                    "recordedAt": r["recorded_at"].isoformat() if r.get("recorded_at") else None,
+                    "recordedAt": _iso(r.get("recorded_at")),
                 })
 
             # 5. Active Medications
@@ -1085,7 +1091,7 @@ def get_student_medical_profile(user_id: int, roll_number: str) -> Dict[str, Any
                     "specialty": cr.get("specialty") or "General Physician",
                     "diagnosis": cr.get("diagnosis") or "General Consultation",
                     "prescriptions": presc_meds,
-                    "completedAt": cr["completed_at"].isoformat() if cr.get("completed_at") else None,
+                    "completedAt": _iso(cr.get("completed_at")),
                 })
 
             return {
@@ -1095,7 +1101,7 @@ def get_student_medical_profile(user_id: int, roll_number: str) -> Dict[str, Any
                     "allergyStatus": med_stat["allergy_status"],
                     "conditionStatus": med_stat["condition_status"],
                     "medicationStatus": med_stat["medication_status"],
-                    "updatedAt": med_stat["updated_at"].isoformat() if med_stat.get("updated_at") else None,
+                    "updatedAt": _iso(med_stat.get("updated_at")),
                 },
                 "summary": summary,
                 "allergies": allergies,
