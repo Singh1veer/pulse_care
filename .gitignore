@@ -9,5 +9,9 @@ node_modules/
 backend/reports/
 backend/reports_out/
 scratch/
+*.pem
+*.key
+backend/scripts/deploy_aws.py
+
 
 
