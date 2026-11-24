@@ -10,6 +10,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import campusCareLogo from '../../assets/campuscare-logo.png'
+import PortalSelectorModal from './PortalSelectorModal'
 
 const GlassInputWrapper = ({ children }) => (
   <div className="rounded-2xl border border-slate-200 bg-slate-50/70 transition-all focus-within:border-slate-800 focus-within:bg-white focus-within:ring-2 focus-within:ring-slate-800/20">
@@ -25,6 +26,7 @@ export default function ReceptionistLogin() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [localError, setLocalError] = useState('')
+  const [isPortalModalOpen, setIsPortalModalOpen] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -90,10 +92,10 @@ export default function ReceptionistLogin() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => navigate('/signin/doctor')}
+                  onClick={() => setIsPortalModalOpen(true)}
                   className="text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors cursor-pointer"
                 >
-                  Doctor OPD &rarr;
+                  Switch role &rarr;
                 </button>
               </div>
 
@@ -242,6 +244,11 @@ export default function ReceptionistLogin() {
           </div>
         </div>
       </section>
+
+      <PortalSelectorModal
+        isOpen={isPortalModalOpen}
+        onClose={() => setIsPortalModalOpen(false)}
+      />
     </div>
   )
 }

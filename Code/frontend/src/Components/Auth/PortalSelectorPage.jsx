@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import {
   BookOpen,
   GraduationCap,
+  Stethoscope,
+  UserCheck,
+  Shield,
   ArrowRight,
   ArrowLeft,
 } from 'lucide-react'
@@ -14,15 +17,31 @@ export default function PortalSelectorPage() {
   const portals = [
     {
       id: 'student',
-      title: 'Student',
+      title: 'Student Portal',
+      subtitle: 'Health file, appointments & prescriptions',
       icon: GraduationCap,
       route: '/signin/student',
     },
     {
       id: 'faculty',
-      title: 'Faculty',
+      title: 'Faculty Portal',
+      subtitle: 'Consultations, records & dependent care',
       icon: BookOpen,
       route: '/signin/faculty',
+    },
+    {
+      id: 'doctor',
+      title: 'Doctor Workstation',
+      subtitle: 'OPD consultation line & e-prescriptions',
+      icon: Stethoscope,
+      route: '/signin/doctor',
+    },
+    {
+      id: 'receptionist',
+      title: 'Receptionist Desk',
+      subtitle: 'Patient registration, queue & dispensary',
+      icon: UserCheck,
+      route: '/signin/receptionist',
     },
   ]
 
@@ -64,15 +83,18 @@ export default function PortalSelectorPage() {
                 key={p.id}
                 type="button"
                 onClick={() => navigate(p.route)}
-                className="p-4 sm:p-5 rounded-2xl border border-slate-200 hover:border-teal-700 bg-white hover:bg-teal-50/40 text-left transition-all duration-200 flex items-center justify-between group cursor-pointer shadow-xs hover:shadow-md"
+                className="p-3.5 sm:p-4 rounded-2xl border border-slate-200 hover:border-teal-700 bg-white hover:bg-teal-50/40 text-left transition-all duration-200 flex items-center justify-between group cursor-pointer shadow-xs hover:shadow-md"
               >
                 <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                  <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-xl bg-[#0c2e2b] text-white flex items-center justify-center shrink-0 shadow-xs transition-transform group-hover:scale-105 group-hover:bg-teal-800">
+                  <div className="h-11 w-11 rounded-xl bg-[#0c2e2b] text-white flex items-center justify-center shrink-0 shadow-xs transition-transform group-hover:scale-105 group-hover:bg-teal-800">
                     <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                   <div className="min-w-0 flex-1 pr-2">
                     <span className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-teal-950 transition-colors block leading-snug">
                       {p.title}
+                    </span>
+                    <span className="text-xs text-slate-500 block mt-0.5 truncate">
+                      {p.subtitle}
                     </span>
                   </div>
                 </div>
@@ -80,6 +102,18 @@ export default function PortalSelectorPage() {
               </button>
             )
           })}
+        </div>
+
+        {/* Administrator Link */}
+        <div className="mt-6 text-center">
+          <button
+            type="button"
+            onClick={() => navigate('/admin/login')}
+            className="text-xs font-medium text-slate-400 hover:text-slate-700 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+          >
+            <Shield className="w-3.5 h-3.5" />
+            <span>Administrator Access</span>
+          </button>
         </div>
       </div>
 

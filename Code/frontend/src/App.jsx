@@ -42,6 +42,15 @@ function AppRoutes() {
       {/* Central 4-Portal Sign-In (Doctor, Receptionist, Student, Faculty) */}
       <Route path="/user_login" element={<PortalSelectorPage />} />
       <Route path="/login" element={<Navigate to="/user_login" replace />} />
+      <Route path="/portals" element={<Navigate to="/user_login" replace />} />
+
+      {/* Direct Friendly URLs for All Roles */}
+      <Route path="/doctor" element={<Navigate to="/signin/doctor" replace />} />
+      <Route path="/receptionist" element={<Navigate to="/signin/receptionist" replace />} />
+      <Route path="/reception" element={<Navigate to="/signin/receptionist" replace />} />
+      <Route path="/student" element={<Navigate to="/signin/student" replace />} />
+      <Route path="/faculty" element={<Navigate to="/signin/faculty" replace />} />
+      <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
 
       {/* Canonical Role-Specific Sign-In Routes */}
       <Route path="/signin/doctor" element={<DoctorLogin />} />
@@ -56,6 +65,9 @@ function AppRoutes() {
       <Route path="/student_login" element={<Navigate to="/signin/student" replace />} />
       <Route path="/doctor_login" element={<Navigate to="/signin/doctor" replace />} />
       <Route path="/receptionist_login" element={<Navigate to="/signin/receptionist" replace />} />
+      <Route path="/reception_login" element={<Navigate to="/signin/receptionist" replace />} />
+      <Route path="/doctor/login" element={<Navigate to="/signin/doctor" replace />} />
+      <Route path="/receptionist/login" element={<Navigate to="/signin/receptionist" replace />} />
 
       {/* Doctor Dashboard */}
       <Route

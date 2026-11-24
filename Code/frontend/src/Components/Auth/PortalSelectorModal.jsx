@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import {
   BookOpen,
   GraduationCap,
+  Stethoscope,
+  UserCheck,
+  Shield,
   X,
   ArrowRight,
 } from 'lucide-react'
@@ -26,15 +29,31 @@ export default function PortalSelectorModal({ isOpen, onClose }) {
   const portals = [
     {
       id: 'student',
-      title: 'Student',
+      title: 'Student Portal',
+      subtitle: 'Health file, appointments & prescriptions',
       icon: GraduationCap,
       route: '/signin/student',
     },
     {
       id: 'faculty',
-      title: 'Faculty',
+      title: 'Faculty Portal',
+      subtitle: 'Consultations, records & dependent care',
       icon: BookOpen,
       route: '/signin/faculty',
+    },
+    {
+      id: 'doctor',
+      title: 'Doctor Workstation',
+      subtitle: 'OPD consultation line & e-prescriptions',
+      icon: Stethoscope,
+      route: '/signin/doctor',
+    },
+    {
+      id: 'receptionist',
+      title: 'Receptionist Desk',
+      subtitle: 'Patient registration, queue & dispensary',
+      icon: UserCheck,
+      route: '/signin/receptionist',
     },
   ]
 
@@ -59,7 +78,7 @@ export default function PortalSelectorModal({ isOpen, onClose }) {
                 Select Portal
               </h2>
               <p className="text-[11px] text-slate-500 mt-1">
-                CampusCare Health Centre
+                CampusCare Health Centre • Choose your role
               </p>
             </div>
           </div>
@@ -74,8 +93,8 @@ export default function PortalSelectorModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        {/* 2 Focused Clean Portal Options: Student & Faculty */}
-        <div className="p-4 sm:p-5 flex flex-col gap-2.5 sm:gap-3 bg-white">
+        {/* 4 Unified Clean Portal Options */}
+        <div className="p-4 sm:p-5 flex flex-col gap-2.5 bg-white">
           {portals.map((p) => {
             const IconComponent = p.icon
             return (
@@ -83,15 +102,18 @@ export default function PortalSelectorModal({ isOpen, onClose }) {
                 key={p.id}
                 type="button"
                 onClick={() => handleSelect(p.route)}
-                className="p-3.5 sm:p-4 rounded-2xl border border-slate-200 hover:border-teal-700 bg-white hover:bg-teal-50/40 text-left transition-all duration-200 flex items-center justify-between group cursor-pointer hover:shadow-sm"
+                className="p-3 sm:p-3.5 rounded-2xl border border-slate-200 hover:border-teal-700 bg-white hover:bg-teal-50/40 text-left transition-all duration-200 flex items-center justify-between group cursor-pointer hover:shadow-sm"
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="h-11 w-11 rounded-xl bg-[#0c2e2b] text-white flex items-center justify-center shrink-0 shadow-xs transition-transform group-hover:scale-105 group-hover:bg-teal-800">
+                  <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-[#0c2e2b] text-white flex items-center justify-center shrink-0 shadow-xs transition-transform group-hover:scale-105 group-hover:bg-teal-800">
                     <IconComponent className="w-5 h-5" />
                   </div>
                   <div className="min-w-0 flex-1 pr-2">
-                    <span className="text-sm font-bold text-slate-900 group-hover:text-teal-950 transition-colors block leading-snug">
+                    <span className="text-sm font-bold text-slate-900 group-hover:text-teal-950 transition-colors block leading-tight">
                       {p.title}
+                    </span>
+                    <span className="text-[11px] text-slate-500 block mt-0.5 truncate">
+                      {p.subtitle}
                     </span>
                   </div>
                 </div>
@@ -99,6 +121,19 @@ export default function PortalSelectorModal({ isOpen, onClose }) {
               </button>
             )
           })}
+        </div>
+
+        {/* Footer with Administrator access */}
+        <div className="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
+          <span>Administrative access?</span>
+          <button
+            type="button"
+            onClick={() => handleSelect('/admin/login')}
+            className="font-semibold text-teal-800 hover:text-teal-950 hover:underline cursor-pointer flex items-center gap-1"
+          >
+            <Shield className="w-3.5 h-3.5" />
+            Admin Portal
+          </button>
         </div>
       </div>
     </div>
