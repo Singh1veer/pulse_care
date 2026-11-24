@@ -193,7 +193,7 @@ The system comes pre-seeded with representative test accounts for evaluation:
 | Role | Portal / URL | Demo Login | Demo Password |
 |---|---|---|---|
 | **Student** | `/signin/student` | `1024030109` *(or @thapar.edu Google)* | `student123` |
-| **Faculty** | `/signin/faculty` | `rajesh.sharma@thapar.edu` | `faculty123` |
+| **Faculty** | `/signin/faculty` | `dr.sharma@thapar.edu` *(or Google)* | `password123` |
 | **Doctor** | `/signin/doctor` | `dr.kapoor@thapar.edu` | `test1234` |
 | **Receptionist** | `/signin/receptionist` | `reception@thapar.edu` | `reception123` |
 
