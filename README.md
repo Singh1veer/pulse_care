@@ -96,15 +96,34 @@ flowchart TB
         SVC3["RFID / NFC Mapping Service"]
     end
 
-    subgraph Data["Data Persistence Layer"]
-        DB[("Relational Database\n(SQLite / MySQL compatible)")]
+    subgraph Cloud["AWS Cloud Infrastructure (3-Pillar Enterprise Architecture)"]
+        subgraph EC2["AWS EC2 (Compute Tier)"]
+            SERVER["FastAPI ASGI REST Engine\n+ Nginx SSL/TLS Gateway"]
+            AUTH["JWT & Google OAuth Validator"]
+            SVC1["Queue & Triage Service"]
+            SVC2["Consultation & Rx Service"]
+            SVC3["S3 Storage & Backup Service"]
+        end
+
+        subgraph RDS["AWS RDS (Managed Relational Database Tier)"]
+            DB[("AWS RDS MySQL 8.0\nACID Transactions & Row Locks")]
+        end
+
+        subgraph S3["AWS S3 (Object Storage Tier)"]
+            BUCKET[("AWS S3 Bucket\nPrescription PDFs, Lab Reports & Snapshots")]
+        end
     end
 
-    Client -->|HTTPS / REST API| Server
-    Server -->|Parametrised SQL / Transactions| Data
+    Client -->|HTTPS / SSL| SERVER
+    SERVER -->|Parametrised SQL / Pooled TLS| DB
+    SERVER -->|Boto3 / Pre-Signed URLs| BUCKET
 ```
 
 ### Architectural Highlights
+- **AWS 3-Pillar Cloud Architecture:**
+  - **AWS EC2:** Runs the containerized application gateway and REST API server with low-latency Nginx reverse proxy and SSL termination.
+  - **AWS RDS (MySQL 8.0):** Managed cloud relational database ensuring transactional row-level queue serialization, connection pooling, and automated point-in-time recovery.
+  - **AWS S3 (Simple Storage Service):** Secure object storage for digital prescription PDFs, patient diagnostic reports, and automated database backup snapshots with pre-signed access URLs.
 - **Hardware-Free NFC:** Utilises the standard W3C **Web NFC API** (`window.NDEFReader`) supported in Chrome on Android. The server receives the card UID over HTTPS and maps it securely to the registered student record.
 - **Authoritative Backend:** All state transitions (e.g. `WAITING` $\rightarrow$ `CALLED` $\rightarrow$ `IN_CONSULTATION` $\rightarrow$ `COMPLETED`) are enforced server-side with atomic transactions.
 - **Role-Based Access Control (RBAC):** Every endpoint validates JWT claims with distinct permissions for Students, Faculty, Doctors, Receptionists, and Administrators.
@@ -120,9 +139,10 @@ flowchart TB
 | **Backend** | Python 3.11, FastAPI, Uvicorn | High-performance asynchronous REST API engine |
 | **Security** | JWT (HS256), Google Auth Library | Token authentication & Thapar Workspace OAuth |
 | **Hardware** | Web NFC API (W3C Standard) | Reading Mifare Classic 1K / ISO 14443-3A ID cards |
-| **Database** | SQLite (Dev) / MySQL Compatible | Relational storage with foreign key integrity |
-| **Server & Proxy** | Nginx, Uvicorn (ASGI) | Reverse proxy with SSL/TLS & asynchronous app server |
-| **Cloud Hosting** | AWS EC2 (Ubuntu 24.04 LTS) | Production deployment with automated health checks |
+| **Compute Cloud** | **AWS EC2** | Application gateway & container hosting |
+| **Database Cloud** | **AWS RDS (MySQL 8.0)** | Enterprise managed relational database & ACID queue locking |
+| **Storage Cloud** | **AWS S3** | Medical records, digital Rx PDFs & automated database backups |
+| **Reverse Proxy** | Nginx, Uvicorn (ASGI) | Reverse proxy with SSL/TLS & local API bridge |
 
 ---
 

@@ -76,3 +76,11 @@ OUTBOX_BATCH_SIZE = int(os.getenv("OUTBOX_BATCH_SIZE", "50"))
 OUTBOX_MAX_RETRIES = int(os.getenv("OUTBOX_MAX_RETRIES", "5"))
 OUTBOX_RETENTION_HOURS = int(os.getenv("OUTBOX_RETENTION_HOURS", "48"))
 
+# ── AWS Cloud 3-Pillar Integration (EC2, RDS, S3) ──────────────────────────
+AWS_REGION = os.getenv("AWS_REGION", "ap-southeast-2")
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "")
+AWS_S3_BUCKET_NAME = os.getenv("AWS_S3_BUCKET_NAME", "pulsecare-medical-records")
+AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL", None)
+
+

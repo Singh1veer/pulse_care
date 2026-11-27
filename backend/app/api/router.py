@@ -1,11 +1,12 @@
 from fastapi import APIRouter
 
-from app.api.routes import admin, auth, doctor, emergency, faculty, health, queue, queue_ws, reception, rfid, student
+from app.api.routes import admin, auth, cloud, doctor, emergency, faculty, health, queue, queue_ws, reception, rfid, student
 
 api_router = APIRouter()
 
 # Register core feature routers
 api_router.include_router(auth.router)
+api_router.include_router(cloud.router)
 api_router.include_router(doctor.router)
 api_router.include_router(faculty.router)
 api_router.include_router(admin.router)
